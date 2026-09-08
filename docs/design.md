@@ -1,15 +1,16 @@
 # Design decisions
 
-Why the agent loop is built the way it is. Synthesized (Sept 2026) from Anthropic's engineering guidance, official Claude Code docs, and a survey of nine existing agent-workflow repos.
+Why the agent loop is built the way it is. Synthesized (Sept 2026) from Anthropic's engineering guidance, the Agent Skills open standard, the skill and subagent docs of the major coding agents, and a survey of nine existing agent-workflow repos.
 
 ## Principles
 
 1. **Process over personas.** Five agents defined by stage contracts (input artifact → output artifact), not job-title prompts. The most-adopted framework in the ecosystem (obra/superpowers) encodes workflow discipline, not a cast of characters; the 150–200-agent catalogs provide titles but no loop. Five is the ceiling — new capability goes into stage contracts, not new roles.
 2. **Sequential stages, file handoff.** Anthropic's multi-agent research flags coding as a poor fit for parallel agents: stages are tightly coupled, and parallel agents make conflicting implicit decisions (Cognition's "Don't Build Multi-Agents" reaches the same conclusion). Each stage runs in a fresh context and hands off through a markdown artifact that carries *decisions and rationale*, not just conclusions — a downstream agent reconstructing context from a lossy summary is the classic handoff failure.
 3. **Adaptive ceremony (triage tiers).** Multi-agent workflows cost roughly 15× the tokens of a single chat (Anthropic measurement). The official best-practices rule — "if you could describe the diff in one sentence, skip the plan" — is generalized into three tiers so trivial tasks never pay for the full pipeline.
-4. **Verification terminates the loop.** "Give Claude a check it can run" is the top-billed official practice. The planner must name a runnable check or the plan is rejected; done means an independent verifier passed that check — never "the implementer says so."
-5. **Hard caps everywhere.** Debug loop capped at 3 iterations with oscillation detection (Claude Code's own Stop-hook enforcement caps at 8 consecutive blocks — official precedent that bounded loops are the right design). Per-stage tool-call budgets; `maxTurns` on the debugger. On cap: escalate with a distilled failure summary, never grind on.
-6. **Zero runtime.** Pure `.claude/` content. Frameworks that shipped daemons, tmux coordination, or databases are now maintenance liabilities racing against native Claude Code features.
+4. **Verification terminates the loop.** Give the agent a check it can run — the top-billed practice in every vendor's own guidance. The planner must name a runnable check or the plan is rejected; done means an independent verifier executed that check and it passed, never "the implementer says so." This is why shell execution is the loop's one hard requirement.
+5. **Hard caps everywhere.** Debug loop capped at 3 iterations with oscillation detection (Claude Code's own Stop-hook enforcement caps at 8 consecutive blocks — precedent that bounded loops are the right design). Per-stage tool-call budgets, plus a per-turn cap on the debugger where the host offers one. On cap: escalate with a distilled failure summary, never grind on.
+6. **Zero runtime.** Markdown and a shell installer, nothing else. Frameworks that shipped daemons, tmux coordination, or databases are now maintenance liabilities racing against native agent features.
+7. **Host-agnostic by construction.** The loop is one [Agent Skills](https://agentskills.io) folder — an open standard (`SKILL.md`, `name` + `description`) adopted across 30+ clients. Nothing in the protocol or the stage contracts names a vendor, a tool, or a frontmatter field belonging to one product. Host-specific affordances live in `agents/` and `adapters/`, and every one of them has a stated fallback.
 
 ## Load-bearing details
 
@@ -17,7 +18,36 @@ Why the agent loop is built the way it is. Synthesized (Sept 2026) from Anthropi
 - **The analyzer owns the existence gate.** Mandatory Found / Exemplars / Missing / Reuse-plan sections. Most agent failures on real codebases come from re-implementing what exists.
 - **The debugger starts fresh each iteration** so failed attempts don't accumulate as context noise, and it must reproduce a failure before fixing it. If it concludes the *plan* is wrong, that's an escalation, not a code change.
 - **The profile makes the loop generic.** Project-specific knowledge (commands, exemplars, conventions) lives in one generated, cached file — `.agent-loop/profile.md` — not in the agent prompts. Discovered commands are executed once before being trusted.
-- **`disable-model-invocation: true`** on the skill: the loop runs only when explicitly invoked and adds zero always-loaded context weight.
+- **Explicit invocation only.** The loop should never be auto-selected for an ordinary edit, so it adds zero always-loaded context weight. Hosts with a declarative switch get it (`disable-model-invocation: true`); the rest are covered by the skill `description`, which states the constraint in prose that the host's own selection logic reads.
+- **Stage contracts are data, not prompts.** They live in `references/stages/` and are read at the point of use rather than baked into a host's agent format. That is what lets one set of contracts drive a Claude Code subagent, a Codex child thread, and a single-context sequential run without divergence.
+
+## Portability
+
+The loop's guarantees split into two kinds, and the split is what makes it portable.
+
+**Protocol guarantees** hold on any host, because they are properties of the artifact contracts:
+stages read only their declared inputs; the plan carries rationale; the verifier is given the plan
+and the diff but not the implementer's reasoning; the debug loop counts to three and stops.
+
+**Host guarantees** depend on what the runtime provides. Each is declared with an explicit
+fallback in `skills/agent-loop/references/capabilities.md`, and the run announces which one it got:
+
+| Guarantee | Structural where supported | Fallback elsewhere |
+|---|---|---|
+| Fresh context per stage | Subagents with own context windows (Mode A) | Sequential stages reading only declared inputs (Mode B) |
+| Verifier cannot edit code | Spawned without write tools | Diff fingerprint before/after verification voids a moved-tree verdict |
+| Bounded debug spend | Per-agent turn cap | Iteration counting against the loop's cap of 3 |
+
+Two consequences worth stating plainly. First, Mode B is not a degraded loop: file-based handoff is
+what makes stages separable, and it works with one context window or six — what Mode B loses is
+protection against the orchestrator's own memory, which is why the stage contracts state their
+inputs as closed lists. Second, the diff fingerprint is strictly weaker than tool restriction
+because it detects a violation after the fact rather than preventing it; it is therefore mandatory
+wherever tool restriction is unavailable, not optional.
+
+The one non-negotiable requirement is shell execution. Verification that cannot run real commands
+gives the loop no termination condition, so on such a host the loop refuses to run rather than
+emitting confident unverified output.
 
 ## Failure modes this design targets
 
@@ -32,9 +62,10 @@ Why the agent loop is built the way it is. Synthesized (Sept 2026) from Anthropi
 
 ## Roadmap
 
-- **v0.1 (this):** agents + skill + templates; install by copying `.claude/` contents or `claude --plugin-dir`. Exit: completes real tier-M/L tasks end-to-end on 2–3 different stacks, including a FAIL → debug → PASS cycle.
-- **v0.2:** optional `hooks/hooks.json` enforcement layer (`SubagentStop` gate on the verifier re-running the check; `Stop` gate on required artifacts); tier and budget tuning from real run logs.
-- **v1.0:** publish via plugin marketplace (`/plugin marketplace add <org>/claude-agent-loop`); team rollout through `extraKnownMarketplaces`.
+- **v0.1:** Claude Code only — subagents, skill, templates. Established the stage contracts.
+- **v0.2 (this):** restructured as a portable Agent Skill with vendor-neutral stage contracts, an explicit host-capability matrix with per-capability fallbacks, and `install.sh` for Claude Code / Codex / Cursor / `.agents`. Exit: completes real tier-M/L tasks end-to-end on 2–3 stacks and on 2+ hosts, including a FAIL → debug → PASS cycle in both Mode A and Mode B.
+- **v0.3:** optional host-native enforcement layers where they exist (on Claude Code, a `SubagentStop` gate on the verifier re-running the check and a `Stop` gate on required artifacts); tier and budget tuning from real run logs.
+- **v1.0:** distribution through each host's own channel — plugin marketplace for Claude Code, a skills registry entry for the rest.
 
 ## Key sources
 
@@ -43,3 +74,5 @@ Why the agent loop is built the way it is. Synthesized (Sept 2026) from Anthropi
 - [Anthropic — Effective context engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
 - [Claude Code — Best practices](https://code.claude.com/docs/en/best-practices) · [Subagents](https://code.claude.com/docs/en/sub-agents) · [Skills](https://code.claude.com/docs/en/skills) · [Plugins](https://code.claude.com/docs/en/plugins)
 - [Cognition — Don't Build Multi-Agents](https://cognition.com/blog/dont-build-multi-agents)
+- [Agent Skills open standard — specification](https://agentskills.io/specification) · [clients](https://agentskills.io/clients)
+- Host skill/subagent docs: [Claude Code](https://code.claude.com/docs/en/skills) · [Codex](https://developers.openai.com/codex/skills) · [Cursor](https://cursor.com/docs/skills)

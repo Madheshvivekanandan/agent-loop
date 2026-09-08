@@ -1,7 +1,7 @@
 {
-  "name": "claude-agent-loop",
+  "name": "agent-loop",
   "owner": {
-    "name": "claude-agent-loop maintainers"
+    "name": "agent-loop maintainers"
   },
   "plugins": [
     {

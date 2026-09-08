@@ -1,5 +1,5 @@
 {
   "name": "agent-loop",
-  "description": "A staged agent loop for Claude Code: triage, analyze, plan, implement, verify, debug — with file-based handoff and hard iteration caps.",
-  "version": "0.1.0"
+  "description": "A staged agent loop for coding agents: triage, analyze, plan, implement, verify, debug — with file-based handoff and hard iteration caps. Portable across Agent Skills clients.",
+  "version": "0.2.0"
 }
