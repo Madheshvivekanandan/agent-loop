@@ -14,7 +14,7 @@ flowchart TD
     P --> I["Implement<br/>implementation.md + evidence"]
     I --> V{"Verify<br/>fresh context: plan + diff only<br/>test-report.md"}
     V -->|PASS| DONE(["Report to human<br/>with evidence"])
-    V -->|"FAIL · iteration < 3"| D["Debug<br/>root-cause fix"]
+    V -->|"FAIL · under 3 iterations"| D["Debug<br/>root-cause fix"]
     D --> V
     V -->|"FAIL · cap hit"| ESC(["Escalate: failure summary<br/>to human"])
 ```
