@@ -110,3 +110,7 @@ install.sh                  installs the skill into a host's skills directory
 ```
 
 See [docs/design.md](docs/design.md) for why each piece is shaped the way it is.
+
+## License
+
+[MIT](LICENSE)
