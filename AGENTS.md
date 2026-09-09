@@ -89,6 +89,8 @@ Each maps to a failure mode in `docs/design.md`.
 - **Project-specific knowledge belongs in `profile.md`, never in a stage contract.** That is what
   keeps the stages generic across stacks. Discovered commands are executed once before being
   trusted.
+- **Reasoning demand belongs in the contract; model names belong in an adapter.** A stage contract
+  may say its demand is high; it may never say `opus`. Model lineups change and differ per host.
 - **Shell execution is the one hard requirement.** Without it the loop has no termination condition
   and must refuse to run.
 

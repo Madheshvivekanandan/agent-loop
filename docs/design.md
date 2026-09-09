@@ -19,6 +19,7 @@ Why the agent loop is built the way it is. Synthesized (Sept 2026) from Anthropi
 - **The debugger starts fresh each iteration** so failed attempts don't accumulate as context noise, and it must reproduce a failure before fixing it. If it concludes the *plan* is wrong, that's an escalation, not a code change.
 - **The profile makes the loop generic.** Project-specific knowledge (commands, exemplars, conventions) lives in one generated, cached file — `.agent-loop/profile.md` — not in the agent prompts. Discovered commands are executed once before being trusted.
 - **Explicit invocation only.** The loop should never be auto-selected for an ordinary edit, so it adds zero always-loaded context weight. Hosts with a declarative switch get it (`disable-model-invocation: true`); the rest are covered by the skill `description`, which states the constraint in prose that the host's own selection logic reads.
+- **Reasoning demand is declared, models are not.** Each stage contract states whether its demand is moderate or high; mapping that to an actual model is an adapter's job. Naming models in the neutral core would date it within months and would silently mean nothing on hosts with a different lineup. The demand levels are a property of the work, so they stay true.
 - **Stage contracts are data, not prompts.** They live in `references/stages/` and are read at the point of use rather than baked into a host's agent format. That is what lets one set of contracts drive a Claude Code subagent, a Codex child thread, and a single-context sequential run without divergence.
 
 ## Portability
@@ -37,6 +38,7 @@ fallback in `skills/agent-loop/references/capabilities.md`, and the run announce
 | Fresh context per stage | Subagents with own context windows (Mode A) | Sequential stages reading only declared inputs (Mode B) |
 | Verifier cannot edit code | Spawned without write tools | Diff fingerprint before/after verification voids a moved-tree verdict |
 | Bounded debug spend | Per-agent turn cap | Iteration counting against the loop's cap of 3 |
+| Cost proportional to difficulty | Per-stage model/effort selection | One model for every stage; cost rises, quality does not fall |
 
 Two consequences worth stating plainly. First, Mode B is not a degraded loop: file-based handoff is
 what makes stages separable, and it works with one context window or six — what Mode B loses is

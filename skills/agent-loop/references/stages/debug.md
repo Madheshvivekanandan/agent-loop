@@ -4,6 +4,8 @@
 and the current diff. **Writes:** appends to `implementation.md`, plus code changes.
 **Restrictions:** may modify source code, within the plan's scope only.
 **Budget:** at most 25 turns per iteration. The orchestrator caps the loop at 3 iterations.
+**Reasoning demand:** high. Root-causing is reasoning-heaviest, and a weak model here reaches for
+the symptom suppressions this contract forbids.
 
 You are here because the verifier returned FAIL. You start fresh on purpose: previous fix attempts
 are not in your context, so they cannot bias you. The findings in `test-report.md` are your work

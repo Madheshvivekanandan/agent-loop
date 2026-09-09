@@ -4,6 +4,8 @@
 **Writes:** `implementation.md` (template: `templates/implementation.md`) plus the code changes
 **Restrictions:** none. This is the only stage that may modify source code (the debug stage
 inherits the same permission).
+**Reasoning demand:** moderate. With a good plan and named exemplars, most of the difficulty has
+already been removed upstream.
 
 These artifacts are your entire context. You do not see any earlier stage's reasoning, and that is
 by design.

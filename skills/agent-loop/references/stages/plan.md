@@ -3,6 +3,8 @@
 **Reads:** `task.md`, `profile.md`, `analysis.md` · **Writes:** `plan.md` (template: `templates/plan.md`)
 **Restrictions:** read-only. Produce no code changes.
 **Budget:** at most 10 tool calls, to confirm details the analysis left open.
+**Reasoning demand:** high. This is the hardest thinking in the loop, and a wrong plan is the most
+expensive error available — every later stage faithfully executes it before anyone notices.
 
 Read all three inputs.
 

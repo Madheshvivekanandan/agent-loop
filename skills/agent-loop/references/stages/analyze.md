@@ -4,6 +4,8 @@
 **Restrictions:** read-only. Never edit code. Shell use is limited to read-only commands
 (`git log`, `git grep`, `ls`, listing dependencies) — nothing that mutates files or state.
 **Budget:** at most 15 tool calls of exploration.
+**Reasoning demand:** moderate. The searching is mechanical; recognising that an existing utility
+*already solves* the task is not. A model that misses it defeats the stage's whole purpose.
 
 Read both inputs before exploring.
 

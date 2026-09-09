@@ -56,13 +56,14 @@ skipped stage), while running the full pipeline on a trivial task is pure waste.
 Run the tier's stages in order. Each stage's contract is a file in `references/stages/`; each
 stage's output artifact follows the matching template in `references/templates/`.
 
-| Stage | Contract | Output artifact | Budget |
-|---|---|---|---|
-| analyze | `references/stages/analyze.md` | `analysis.md` | ≤ 15 tool calls |
-| plan | `references/stages/plan.md` | `plan.md` | ≤ 10 tool calls |
-| implement | `references/stages/implement.md` | `implementation.md` | — |
-| verify | `references/stages/verify.md` | `test-report.md` | ≤ 15 tool calls |
-| debug | `references/stages/debug.md` | appends to `implementation.md` | ≤ 25 turns |
+| Stage | Contract | Output artifact | Budget | Reasoning demand |
+|---|---|---|---|---|
+| profile | `references/stages/profile.md` | `profile.md` | — | moderate |
+| analyze | `references/stages/analyze.md` | `analysis.md` | ≤ 15 tool calls | moderate |
+| plan | `references/stages/plan.md` | `plan.md` | ≤ 10 tool calls | **high** |
+| implement | `references/stages/implement.md` | `implementation.md` | — | moderate |
+| verify | `references/stages/verify.md` | `test-report.md` | ≤ 15 tool calls | **high** |
+| debug | `references/stages/debug.md` | appends to `implementation.md` | ≤ 25 turns | **high** |
 
 **Mode A:** each stage is one subagent spawn, run in the foreground, in order. The delegation
 prompt must contain: the stage's objective; the **absolute path to its stage contract**; absolute
@@ -74,6 +75,26 @@ restrictions each stage contract names.
 **Mode B:** announce the stage, read its contract, and follow it as written — including its input
 list. Do not carry forward context a stage is not entitled to (see the verify gate below). If your
 host can clear or compact context between stages, do so at each boundary.
+
+### Model selection
+
+Stages differ in how hard they are, so they do not all need the same model. If your host can choose
+a model (or a reasoning-effort level) per stage, use each contract's **reasoning demand**:
+
+- **high** — plan, verify, debug. Use the strongest model you have. A wrong plan is executed
+  faithfully by every stage after it; a lazy verify is the loop's only termination condition
+  failing open; a weak debug reaches for the symptom suppressions its contract forbids. These three
+  are where quality has to come from.
+- **moderate** — profile, analyze, implement. A mid-tier model is enough. Most of the difficulty
+  has been removed upstream by the time these run.
+
+Do not push the moderate stages to your cheapest model without measuring. Analyze in particular
+looks mechanical but is not: its job is recognising that something *already exists*, and a model
+that misses it hands the implementer a green light to rebuild it. That costs far more than the
+model saved.
+
+If your host cannot vary the model, run the whole loop on the strongest one available and skip this
+section. Quality is unaffected; only cost is.
 
 ### Stage gates (check after each stage, before the next)
 

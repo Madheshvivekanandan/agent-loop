@@ -42,6 +42,19 @@ reports problems instead of quietly patching them.
   after the fact rather than preventing it, so it is mandatory whenever tool restriction is
   unavailable.
 
+### Per-stage model selection
+
+Stages have different reasoning demands, declared in each stage contract. Hosts that can set a
+model or a reasoning-effort level per delegated agent can spend strong-model budget on plan,
+verify and debug while running profile, analyze and implement mid-tier.
+
+- *Fallback.* Run every stage on the strongest model available. This is a pure cost difference —
+  no guarantee in the loop depends on model variation, and a uniformly strong loop is strictly
+  safer than a badly tuned one.
+- *Caution.* The cheapest tier is a false economy on the analyze stage, whose value is noticing
+  that something already exists. Missing that is the single most expensive failure the loop is
+  built to prevent, and it costs far more than the model saved.
+
 ### Context clearing or compaction between stages
 
 Approximates fresh contexts in Mode B and keeps the orchestrator small.

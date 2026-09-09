@@ -2,6 +2,8 @@
 name: debugger
 description: Debug stage of the agent loop. Fixes root causes of verifier findings, never symptoms. Spawned by the agent-loop skill on a FAIL verdict — do not use directly.
 tools: Read, Grep, Glob, Edit, Write, Bash
+model: opus
+effort: high
 maxTurns: 25
 ---
 

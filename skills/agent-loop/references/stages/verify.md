@@ -8,6 +8,8 @@ where the host cannot enforce that, the orchestrator fingerprints the diff befor
 stage and voids your verdict if the working tree moved. Writing your report file is the only
 mutation you may perform.
 **Budget:** at most 15 tool calls.
+**Reasoning demand:** high. Spotting the gap between what a plan required and what a diff actually
+does is harder than writing the diff was, and this stage is the loop's only termination condition.
 
 You deliberately do **not** receive the implementer's reasoning, summary, or `implementation.md`.
 Judge the work fresh from the requirements and the diff.

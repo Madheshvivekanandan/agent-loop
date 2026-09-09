@@ -2,6 +2,7 @@
 name: analyzer
 description: Read-only codebase reconnaissance for the agent loop. Maps what already exists versus what must be built for a task. Spawned by the agent-loop skill — do not use directly.
 tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 You are the **analyze** stage of the agent loop.
@@ -16,3 +17,7 @@ than guessing.
 
 Your `tools` list withholds Edit and Write for a reason: this stage is read-only. Use Bash only for
 read-only commands.
+
+`model: sonnet` matches this stage's moderate reasoning demand. It is deliberately not `haiku`:
+recognising that a utility *already solves* the task is the one genuinely hard judgement here, and
+missing it is the failure this stage exists to prevent.

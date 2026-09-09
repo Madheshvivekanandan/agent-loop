@@ -2,6 +2,7 @@
 name: planner
 description: Planning stage of the agent loop. Turns task plus analysis into a self-contained implementation plan with a runnable acceptance check. Spawned by the agent-loop skill — do not use directly.
 tools: Read, Grep, Glob
+model: opus
 effort: high
 ---
 

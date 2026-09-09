@@ -4,6 +4,8 @@
 **Restrictions:** read-only on source code. Shell use is permitted and required — but only for
 commands that inspect or build, never ones that mutate tracked files or push state anywhere.
 **Runs:** once per project, then cached. Refresh by deleting the file.
+**Reasoning demand:** moderate. Detection is mechanical, but the exemplars you pick steer every
+later stage, so this is not a stage to run on the weakest model available.
 
 You are establishing the project-specific knowledge the rest of the loop depends on. Everything
 downstream is generic; this file is where a particular codebase's reality lives.

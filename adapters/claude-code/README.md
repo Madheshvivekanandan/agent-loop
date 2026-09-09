@@ -10,6 +10,31 @@ host configuration the loop can run on:
   fact instead of preventing it.
 - **`maxTurns: 25`** on `agents/debugger.md` bounds each debug iteration mechanically.
 
+## Demand → model mapping
+
+The stage contracts declare a **reasoning demand**; this adapter maps it to Claude Code's `model:`
+and `effort:` fields.
+
+| Stage | Demand | `model` | `effort` |
+|---|---|---|---|
+| analyzer | moderate | `sonnet` | — |
+| planner | **high** | `opus` | `high` |
+| implementer | moderate | `sonnet` | — |
+| verifier | **high** | `opus` | `high` |
+| debugger | **high** | `opus` | `high` |
+
+Strong-model budget goes to the three stages where quality actually comes from: a wrong plan is
+executed faithfully by everything downstream, the verifier is the loop's only termination
+condition, and a weak debugger reaches for the symptom suppressions its contract forbids.
+
+Nothing is mapped to `haiku`. Analyze is the tempting candidate — it looks like search — but its
+real job is noticing that something *already exists*, and missing that hands the implementer a
+green light to rebuild it. That costs far more than the model saved. Measure before dropping a
+tier; `model: inherit` on all five is a safe way to A/B the whole loop against your session model.
+
+The profile stage has no subagent file: it is orchestrated inline via
+`references/stages/profile.md` and runs once per project, so tuning it saves almost nothing.
+
 The subagent definitions live in `agents/` at the repository root (not in this directory) because
 that is where Claude Code's plugin loader expects them. They are thin: each one points at the
 vendor-neutral stage contract in `skills/agent-loop/references/stages/` and adds only the

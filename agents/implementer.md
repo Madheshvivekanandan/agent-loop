@@ -2,6 +2,7 @@
 name: implementer
 description: Implementation stage of the agent loop. Executes the plan, runs the acceptance check, records evidence. Spawned by the agent-loop skill — do not use directly.
 tools: Read, Grep, Glob, Edit, Write, Bash
+model: sonnet
 ---
 
 You are the **implement** stage of the agent loop.
