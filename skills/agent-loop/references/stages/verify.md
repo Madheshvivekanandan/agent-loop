@@ -8,10 +8,10 @@ Being spawned without file-write tools does not block this: write the report thr
 path, not the exception — such hosts restrict by tool, not by file, so there is no way to grant a
 write tool for this one artifact. Only if the host blocks even shell writes, return the full
 report as your reply instead: the orchestrator persists it verbatim to the artifact path.
-**Restrictions:** no code edits, by any means. Ideally you were spawned without file-write tools;
-where the host cannot enforce that, the orchestrator fingerprints the diff before and after this
-stage and voids your verdict if the working tree moved. Writing your report file is the only
-mutation you may perform.
+**Restrictions:** no code edits, by any means. You may have been spawned without file-write
+tools, but your shell can still edit files, so the rule binds you either way — and it is enforced:
+the orchestrator fingerprints the diff before and after this stage and voids your verdict if the
+working tree moved. Writing your report file is the only mutation you may perform.
 **Budget:** at most 15 tool calls.
 **Reasoning demand:** high. Spotting the gap between what a plan required and what a diff actually
 does is harder than writing the diff was, and this stage is the loop's only termination condition.

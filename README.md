@@ -67,7 +67,7 @@ search code. Everything beyond that is optional and degrades explicitly rather t
 | Capability | With it | Without it |
 |---|---|---|
 | Subagents | **Mode A** — one isolated context per stage | **Mode B** — stages run in sequence, still reading only their declared inputs |
-| Per-agent tool restriction | Verifier spawned with no write tools — it *cannot* patch what it judges | Diff fingerprinted before/after verification; verdict voided if the tree moved |
+| Per-agent tool restriction | Verifier spawned with no write tools, on top of the always-on diff fingerprint | Fingerprint alone — diff recorded before/after verification; verdict voided if the tree moved |
 | Turn caps | Debugger bounded mechanically | Iteration counting; the 3-iteration loop cap holds either way |
 | Per-stage model choice | Strong models on plan/verify/debug, mid-tier elsewhere | One model throughout — same quality, higher cost |
 

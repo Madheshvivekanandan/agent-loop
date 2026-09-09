@@ -4,10 +4,10 @@ Claude Code supports declarative subagents with per-agent tool allowlists, which
 host configuration the loop can run on:
 
 - **Mode A** — each stage runs in its own context window.
-- **Structural verify guarantee** — `agents/verifier.md` omits Edit and Write from its `tools:`
-  list, so the verifier physically cannot patch the code it is judging. On hosts without tool
-  restriction this degrades to the diff-fingerprint check, which catches the problem after the
-  fact instead of preventing it.
+- **Verify defence in depth** — `agents/verifier.md` omits Edit and Write from its `tools:`
+  list, removing the convenient edit path. This is not the guarantee: the verifier keeps Bash to
+  run the checks, and a shell can edit files, so the orchestrator's diff fingerprint is mandatory
+  here too — tool restriction layers on top of it, it does not replace it.
 - **`maxTurns: 25`** on `agents/debugger.md` bounds each debug iteration mechanically.
 
 ## Demand → model mapping
