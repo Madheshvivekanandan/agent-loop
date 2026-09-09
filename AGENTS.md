@@ -94,7 +94,7 @@ Each maps to a failure mode in `docs/design.md`.
 - **Shell execution is the one hard requirement.** Without it the loop has no termination condition
   and must refuse to run.
 
-Stage budgets (analyze ≤ 15 tool calls, plan ≤ 10, verify ≤ 15, debug ≤ 25 turns) appear in both
+Stage budgets (analyze ≤ 15 tool calls, plan ≤ 15, verify ≤ 15, debug ≤ 25 turns) appear in both
 `SKILL.md`'s stage table and the individual contracts, so a change must update both.
 
 ## Docs to keep in sync
