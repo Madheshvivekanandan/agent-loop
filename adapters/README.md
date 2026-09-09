@@ -10,8 +10,10 @@ What varies between hosts is only:
 1. **Which directory** they scan for skills.
 2. **Whether they can spawn subagents**, which decides Mode A vs Mode B (see
    `skills/agent-loop/references/capabilities.md`).
-3. **Whether they can restrict a subagent's tools**, which decides whether the verifier's
-   no-edit rule is enforced structurally or by diff fingerprint.
+3. **Whether they can restrict a subagent's tools**, which decides whether the verifier gets the
+   defence-in-depth tool restriction on top of the diff fingerprint. The fingerprint itself is
+   mandatory on every host — the verifier always holds a shell, so restriction alone cannot
+   prevent edits.
 
 ## Install locations
 
@@ -21,9 +23,9 @@ itself is unchanged.
 
 | Host | Skills directory | Subagents | Tool restriction |
 |---|---|---|---|
-| **Claude Code** | `.claude/skills/` · `~/.claude/skills/` | Yes → Mode A | Yes (`agents/`) |
-| **Codex** | `.agents/skills/` (cwd → repo root) · `~/.agents/skills/` | On request → Mode A | No → fingerprint |
-| **Cursor** | `.cursor/skills/` · `.agents/skills/` · also reads `.claude/skills/`, `.codex/skills/` | Cloud agents → Mode A | No → fingerprint |
+| **Claude Code** | `.claude/skills/` · `~/.claude/skills/` | Yes → Mode A | Yes (`agents/`) + fingerprint |
+| **Codex** | `.agents/skills/` (cwd → repo root) · `~/.agents/skills/` | On request → Mode A | No → fingerprint only |
+| **Cursor** | `.cursor/skills/` · `.agents/skills/` · also reads `.claude/skills/`, `.codex/skills/` | Cloud agents → Mode A | No → fingerprint only |
 | **Any other Agent Skills client** | see vendor docs; `.agents/skills/` is the shared convention | varies → declare it | varies |
 
 `install.sh` writes to the right place for you:
@@ -42,5 +44,6 @@ explicit invocation.
 ## `claude-code/`
 
 Claude Code specifics: the `agents/` directory at the repo root holds native subagent definitions
-whose `tools:` allowlists make the verifier's read-only rule structural rather than behavioural.
+whose `tools:` allowlists strip the verifier's convenient edit path — defence in depth on top of
+the mandatory diff fingerprint.
 Also usable as a plugin without copying anything — see that directory's README.

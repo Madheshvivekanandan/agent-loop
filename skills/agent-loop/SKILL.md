@@ -114,13 +114,17 @@ The verifier judges the work fresh. It receives **only** the plan (or `task.md` 
 profile — never the implementer's summary, reasoning, or artifact. An agent shown the rationale
 tends to confirm it rather than break it.
 
-The verifier must also not edit code. Enforce this by whichever means your host supports, in order
-of preference:
+The verifier must also not edit code. The verifier always holds a shell — it has to execute the
+runnable check — and a shell can edit files, so no tool restriction makes editing impossible.
+Enforcement is therefore two layers, and the first is never optional:
 
-1. **Tool restriction** — spawn it without file-write tools. Structural, so prefer it.
-2. **Diff fingerprint** — record `git diff` (or its hash) immediately before verification and
-   compare immediately after. If the working tree changed during verification, the verdict is void:
-   discard the report and re-run verification. In Mode B this check is mandatory, not optional.
+1. **Diff fingerprint** — mandatory on every run, in both modes. Record `git diff` (or its hash)
+   immediately before verification and compare immediately after. If the working tree changed
+   during verification, the verdict is void: discard the report and re-run verification. (The
+   report itself lives in `.agent-loop/`, outside the tree, so writing it never trips this.)
+2. **Tool restriction** — where your host supports it, additionally spawn the verifier without
+   file-write tools. Defence in depth: it removes the convenient edit path and states intent, but
+   the fingerprint is the guarantee.
 
 ## Step 3 — Debug loop (on FAIL)
 

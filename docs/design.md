@@ -14,7 +14,7 @@ Why the agent loop is built the way it is. Synthesized (Sept 2026) from Anthropi
 
 ## Load-bearing details
 
-- **The verifier has no Edit/Write tools.** Withholding them is the structural guarantee it reports instead of patching. It also never sees the implementer's summary or reasoning — an agent that saw the rationale tends to confirm it rather than break it. Its prompt caps the opposite failure too: only correctness-affecting gaps count, because a reviewer prompted to find gaps will otherwise manufacture them.
+- **The verifier has no Edit/Write tools.** Withholding them removes the convenient edit path and states intent — defence in depth on top of the mandatory diff fingerprint, which is the actual guarantee it reports instead of patching (the verifier keeps a shell to run the checks, and a shell can edit files). It also never sees the implementer's summary or reasoning — an agent that saw the rationale tends to confirm it rather than break it. Its prompt caps the opposite failure too: only correctness-affecting gaps count, because a reviewer prompted to find gaps will otherwise manufacture them.
 - **The analyzer owns the existence gate.** Mandatory Found / Exemplars / Missing / Reuse-plan sections. Most agent failures on real codebases come from re-implementing what exists.
 - **The debugger starts fresh each iteration** so failed attempts don't accumulate as context noise, and it must reproduce a failure before fixing it. If it concludes the *plan* is wrong, that's an escalation, not a code change.
 - **The profile makes the loop generic.** Project-specific knowledge (commands, exemplars, conventions) lives in one generated, cached file — `.agent-loop/profile.md` — not in the agent prompts. Discovered commands are executed once before being trusted.
@@ -36,16 +36,18 @@ fallback in `skills/agent-loop/references/capabilities.md`, and the run announce
 | Guarantee | Structural where supported | Fallback elsewhere |
 |---|---|---|
 | Fresh context per stage | Subagents with own context windows (Mode A) | Sequential stages reading only declared inputs (Mode B) |
-| Verifier cannot edit code | Spawned without write tools | Diff fingerprint before/after verification voids a moved-tree verdict |
+| Verifier cannot edit code | Diff fingerprint on every run, plus spawned without write tools | Diff fingerprint alone — it is the guarantee on every host |
 | Bounded debug spend | Per-agent turn cap | Iteration counting against the loop's cap of 3 |
 | Cost proportional to difficulty | Per-stage model/effort selection | One model for every stage; cost rises, quality does not fall |
 
 Two consequences worth stating plainly. First, Mode B is not a degraded loop: file-based handoff is
 what makes stages separable, and it works with one context window or six — what Mode B loses is
 protection against the orchestrator's own memory, which is why the stage contracts state their
-inputs as closed lists. Second, the diff fingerprint is strictly weaker than tool restriction
-because it detects a violation after the fact rather than preventing it; it is therefore mandatory
-wherever tool restriction is unavailable, not optional.
+inputs as closed lists. Second, the diff fingerprint is the verifier's real no-edit guarantee on
+every host, not a fallback: the verifier must hold a shell to run the checks, and a shell can edit
+files, so withholding write tools removes the convenient path without preventing mutation.
+Detection after the fact — void the verdict, re-verify — is what actually holds, which is why the
+fingerprint is mandatory on every run and tool restriction is defence in depth on top of it.
 
 The one non-negotiable requirement is shell execution. Verification that cannot run real commands
 gives the loop no termination condition, so on such a host the loop refuses to run rather than
@@ -56,7 +58,7 @@ emitting confident unverified output.
 | Failure mode | Mitigation here |
 |---|---|
 | Context poisoning (bad output contaminates later stages) | Fresh context per stage; artifacts, not transcripts |
-| Sycophantic verification | Independent verifier, no write tools, no implementer rationale, evidence required |
+| Sycophantic verification | Independent verifier, mandatory diff fingerprint, no implementer rationale, evidence required |
 | Infinite fix loops | Cap of 3, oscillation detection, escalation contract |
 | Re-implementing existing code | Analyzer's mandatory existence gate + exemplars |
 | Over-orchestration of trivial tasks | Triage tiers; prefer the smaller tier when unsure |

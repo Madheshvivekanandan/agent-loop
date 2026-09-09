@@ -76,10 +76,11 @@ Each maps to a failure mode in `docs/design.md`.
 
 - **Five stages plus profile is a ceiling.** New capability goes into an existing contract, never a
   new role.
-- **The verifier must not be able to certify its own patch.** Where the host can restrict tools,
-  spawn it without write tools; everywhere else the **diff fingerprint** before/after verification
-  is mandatory. It is also never passed the implementer's summary, reasoning, or
-  `implementation.md`.
+- **The verifier must not be able to certify its own patch.** The **diff fingerprint**
+  before/after verification is mandatory on every run: the verifier always holds a shell, and a
+  shell can edit files, so tool restriction (spawn it without write tools, where the host can) is
+  defence in depth, never the guarantee. It is also never passed the implementer's summary,
+  reasoning, or `implementation.md`.
 - **`plan.md` must carry rationale, not just conclusions** — the implementer never sees the
   planner's reasoning, and one that gets only conclusions re-derives and contradicts it.
 - **A plan without a Runnable check is invalid.** The orchestrator returns it once, then stops.

@@ -34,18 +34,21 @@ exploration transcripts, diffs, and test logs never accumulate in the orchestrat
 
 ### Per-agent tool restriction
 
-Lets the verifier be spawned without file-write tools, which is the structural guarantee that it
-reports problems instead of quietly patching them. Tool restriction works per tool, not per
-file, so a stage stripped of write tools normally still produces its artifact through the shell
-(output redirection); only a stage that cannot write by any means returns the full content
-instead, and the orchestrator persists it verbatim to the artifact path (`SKILL.md`, artifact
-persistence) — the artifacts are the audit log, and a host restriction must not create a gap in
-it.
+Lets the verifier be spawned without file-write tools. This is defence in depth, not the
+guarantee: the verifier always holds a shell (it must execute the runnable check), and a shell can
+edit files, so withholding write tools removes the convenient path and states intent rather than
+preventing mutation. The actual no-edit guarantee is the **diff fingerprint** in `SKILL.md` Step 2
+— capture `git diff` before verification and again after, void the verdict if the tree changed —
+and it is mandatory on every run, with or without tool restriction.
 
-- *Fallback.* The **diff fingerprint** check in `SKILL.md` Step 2: capture `git diff` before
-  verification and again after, and void the verdict if the tree changed. This catches the failure
-  after the fact rather than preventing it, so it is mandatory whenever tool restriction is
-  unavailable.
+Tool restriction also works per tool, not per file, so a stage stripped of write tools normally
+still produces its artifact through the shell (output redirection); only a stage that cannot write
+by any means returns the full content instead, and the orchestrator persists it verbatim to the
+artifact path (`SKILL.md`, artifact persistence) — the artifacts are the audit log, and a host
+restriction must not create a gap in it.
+
+- *Fallback.* None needed for the no-edit rule — the fingerprint runs regardless. A host without
+  tool restriction loses only the defence-in-depth layer, not the guarantee.
 
 ### Per-stage model selection
 
